@@ -1,0 +1,26 @@
+From dcd2c7ddcda611ae3bc0ff29f8f3e2079b481f46 Mon Sep 17 00:00:00 2001
+From: Josh M <joshlm2947@gmail.com>
+Date: Tue, 13 Oct 2026 18:11:11 -0400
+Subject: [PATCH 5/6] Pass a 64-bit register to msr fpcr on ARM64
+
+---
+ XenonUtils/ppc_context.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/XenonUtils/ppc_context.h b/XenonUtils/ppc_context.h
+index 31a86cd..6b2e3f2 100644
+--- a/XenonUtils/ppc_context.h
++++ b/XenonUtils/ppc_context.h
+@@ -251,7 +251,8 @@ struct PPCFPSCRRegister
+ 
+     inline void setcsr(uint32_t csr) noexcept
+     {
+-        __asm__ __volatile__("msr fpcr, %0" : : "r"(csr));
++        // msr takes a 64-bit register; pass a zero-extended value rather than a w register.
++        __asm__ __volatile__("msr fpcr, %0" : : "r"(uint64_t(csr)));
+     }
+ #else
+ #   error "Missing implementation for FPSCR."
+-- 
+2.54.0 (Apple Git-156)
+
