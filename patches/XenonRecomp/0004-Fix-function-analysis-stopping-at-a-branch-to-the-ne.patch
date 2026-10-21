@@ -1,0 +1,36 @@
+From 68c4672481f33e762a7ac7b76a78746ab226791e Mon Sep 17 00:00:00 2001
+From: Josh M <joshlm2947@gmail.com>
+Date: Tue, 13 Oct 2026 18:11:11 -0400
+Subject: [PATCH 4/6] Fix function analysis stopping at a branch to the next
+ instruction
+
+A conditional branch whose target is the fall-through address (eg. bdz used
+to decrement CTR in switch chains) projected a zero-sized false block. The
+analyzer never walked it and the discontinuity pass then dropped every block
+after it, splitting the function.
+
+---
+ XenonAnalyse/function.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/XenonAnalyse/function.cpp b/XenonAnalyse/function.cpp
+index 34add40..1032ec1 100644
+--- a/XenonAnalyse/function.cpp
++++ b/XenonAnalyse/function.cpp
+@@ -117,7 +117,12 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
+ 
+             if (lBlock == -1)
+             {
+-                blocks.emplace_back(lBase, 0).projectedSize = rBase - lBase;
++                // Project the false path up to the branch target, but only when the target is
++                // ahead of it. A branch to the next instruction (eg. "bdz" used to decrement CTR)
++                // would otherwise project an empty block, ending the analysis there.
++                auto& falseBlock = blocks.emplace_back(lBase, 0);
++                if (rBase > lBase)
++                    falseBlock.projectedSize = rBase - lBase;
+                 lBlock = blocks.size() - 1;
+ 
+                 // push this first, this gets overriden by the true case as it'd be further away
+-- 
+2.54.0 (Apple Git-156)
+
