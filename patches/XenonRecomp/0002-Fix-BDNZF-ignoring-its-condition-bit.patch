@@ -1,0 +1,30 @@
+From 94b023e4e1f227fadd982f2ebfc265add33ff0df Mon Sep 17 00:00:00 2001
+From: Josh M <joshlm2947@gmail.com>
+Date: Tue, 13 Oct 2026 18:00:46 -0400
+Subject: [PATCH 2/7] Fix BDNZF ignoring its condition bit
+
+BDNZF always tested eq regardless of the BI operand. Use the CR bit the
+instruction names.
+
+---
+ XenonRecomp/recompiler.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+index 8a29046..eeb85f5 100644
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -694,9 +694,8 @@ bool Recompiler::Recompile(
+         break;
+ 
+     case PPC_INST_BDNZF:
+-        // NOTE: assuming eq here as a shortcut because all the instructions in the game do that
+         println("\t--{}.u64;", ctr());
+-        println("\tif ({}.u32 != 0 && !{}.eq) goto loc_{:X};", ctr(), cr(insn.operands[0] / 4), insn.operands[1]);
++        println("\tif ({}.u32 != 0 && !{}) goto loc_{:X};", ctr(), crBit(insn.operands[0]), insn.operands[1]);
+         break;
+ 
+     case PPC_INST_BEQ:
+-- 
+2.54.0 (Apple Git-156)
+
