@@ -1,0 +1,54 @@
+[main]
+file_path = "../game/Default.xex"
+out_directory_path = "../out/ppc"
+switch_table_file_path = "switch_tables.toml"
+
+skip_lr = false
+skip_msr = false
+ctr_as_local = false
+xer_as_local = false
+reserved_as_local = false
+cr_as_local = false
+non_argument_as_local = false
+non_volatile_as_local = false
+
+restgprlr_14_address = 0x825F0A80
+savegprlr_14_address = 0x825F0A30
+restfpr_14_address = 0x825F140C
+savefpr_14_address = 0x825F13C0
+restvmx_14_address = 0x825F2188
+savevmx_14_address = 0x825F1EF0
+restvmx_64_address = 0x825F221C
+savevmx_64_address = 0x825F1F84
+
+longjmp_address = 0x825F7C30
+setjmp_address = 0x825F7760
+
+invalid_instructions = [
+    { data = 0x00000000, size = 4 }, # Padding
+    { data = 0x825F2878, size = 8 }, # C++ frame handler + scope table pointer
+    { data = 0x8288447C, size = 8 }, # __C_specific_handler + scope table pointer
+]
+
+# Frameless functions containing jump tables (tools/fix_switch_bounds.py)
+functions = [
+    { address = 0x821C7328, size = 0x168 },
+    { address = 0x82255478, size = 0xA4 },
+    { address = 0x822CA7A8, size = 0xD8 },
+    { address = 0x822CA930, size = 0x8C },
+    { address = 0x82312BA0, size = 0x270 },
+    { address = 0x8249E830, size = 0xD4 },
+    { address = 0x824A3180, size = 0x550 },
+    { address = 0x824A3748, size = 0x98 },
+    { address = 0x8250A5B0, size = 0x19C },
+    { address = 0x825C0508, size = 0x170 },
+    { address = 0x825F10B0, size = 0xA0 },
+    { address = 0x8263D4C8, size = 0x224 },
+    { address = 0x8266D500, size = 0x110 },
+    { address = 0x82726D08, size = 0x80 },
+    { address = 0x828154B0, size = 0x68 },
+    { address = 0x82815518, size = 0x64 },
+    { address = 0x82815580, size = 0x5C },
+    { address = 0x828155E0, size = 0x198 },
+    { address = 0x82815778, size = 0x16C },
+]

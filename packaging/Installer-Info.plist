@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleExecutable</key>
+    <string>Peggle 2 Installer</string>
+    <key>CFBundleIdentifier</key>
+    <string>local.peggle2mac.installer</string>
+    <key>CFBundleName</key>
+    <string>Peggle 2 Installer</string>
+    <key>CFBundleDisplayName</key>
+    <string>Peggle 2 Installer</string>
+    <key>CFBundleIconFile</key>
+    <string>InstallerIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Builds Peggle 2 for Mac from your own copy of the game. Peggle 2 © Electronic Arts / PopCap Games.</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.arcade-games</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>GCSupportsControllerUserInteraction</key>
+    <true/>
+</dict>
+</plist>
