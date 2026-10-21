@@ -1,0 +1,10 @@
+game/
+/third_party/
+build/
+out/
+*.log
+.DS_Store
+*.xex
+*.rsb
+*.stfs
+/frames*/

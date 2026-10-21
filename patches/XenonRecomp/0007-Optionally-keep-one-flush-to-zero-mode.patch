@@ -1,0 +1,45 @@
+From 3d8f2d21dcae12ef80aed2953654b200e4d3da1d Mon Sep 17 00:00:00 2001
+From: Josh M <joshlm2947@gmail.com>
+Date: Tue, 20 Oct 2026 01:18:22 -0400
+Subject: [PATCH 7/7] Optionally keep one flush-to-zero mode instead of switching
+ per instruction group
+
+PPC_NO_FLUSH_MODE_SWITCH makes enableFlushMode/disableFlushMode no-ops.
+On ARM64 each FPCR write serializes the core, and code that interleaves
+VMX and FPU instructions switched it constantly.
+---
+ XenonUtils/ppc_context.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/XenonUtils/ppc_context.h b/XenonUtils/ppc_context.h
+index 6b2e3f2..852e6af 100644
+--- a/XenonUtils/ppc_context.h
++++ b/XenonUtils/ppc_context.h
+@@ -283,8 +283,14 @@ struct PPCFPSCRRegister
+         setcsr(csr);
+     }
+ 
++    // PPC_NO_FLUSH_MODE_SWITCH keeps IEEE denormals for VMX too instead of switching the host's
++    // flush-to-zero mode between VMX and FPU code. Only denormal results differ; on hosts where the mode
++    // register is expensive to write (ARM64 FPCR) switching can dominate the run time of mixed code.
+     inline void enableFlushMode() noexcept
+     {
++#ifdef PPC_NO_FLUSH_MODE_SWITCH
++        return;
++#endif
+         if ((csr & FlushMask) != FlushMask) [[unlikely]]
+         {
+             csr |= FlushMask;
+@@ -294,6 +300,9 @@ struct PPCFPSCRRegister
+ 
+     inline void disableFlushMode() noexcept
+     {
++#ifdef PPC_NO_FLUSH_MODE_SWITCH
++        return;
++#endif
+         if ((csr & FlushMask) != 0) [[unlikely]]
+         {
+             csr &= ~FlushMask;
+-- 
+2.54.0 (Apple Git-156)
+
