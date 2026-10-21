@@ -1,0 +1,47 @@
+From f5909fd392d5c709f7d92a4040eb2e373ecfb89c Mon Sep 17 00:00:00 2001
+From: Josh M <joshlm2947@gmail.com>
+Date: Tue, 13 Oct 2026 18:05:44 -0400
+Subject: [PATCH 3/7] Make float-to-int conversions follow PPC saturation rules
+ on all hosts
+
+SIMDe's non-x86 fallbacks return INT_MIN for exactly 2^31-1 in fctiwz and 0
+for NaN in fctidz. Emit the PPC rules directly: saturate out-of-range values
+and convert NaN to the most negative value.
+
+---
+ XenonRecomp/recompiler.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+index eeb85f5..cbd32e1 100644
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -945,17 +945,22 @@ bool Recompiler::Recompile(
+ 
+     case PPC_INST_FCTID:
+         printSetFlushMode(false);
+-        println("\t{}.s64 = ({}.f64 > double(LLONG_MAX)) ? LLONG_MAX : simde_mm_cvtsd_si64(simde_mm_load_sd(&{}.f64));", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]));
++        // 2^63 is the first double above LLONG_MAX; PPC saturates there.
++        println("\t{}.s64 = ({}.f64 >= 9223372036854775808.0) ? LLONG_MAX : simde_mm_cvtsd_si64(simde_mm_load_sd(&{}.f64));", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]));
+         break;
+ 
+     case PPC_INST_FCTIDZ:
+         printSetFlushMode(false);
+-        println("\t{}.s64 = ({}.f64 > double(LLONG_MAX)) ? LLONG_MAX : simde_mm_cvttsd_si64(simde_mm_load_sd(&{}.f64));", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]));
++        // PPC saturates out-of-range values and converts NaN to the most negative value.
++        // Done explicitly since SIMDe's non-x86 fallback is off by one at the range limits.
++        println("\t{}.s64 = ({}.f64 >= 9223372036854775808.0) ? LLONG_MAX : ({}.f64 >= -9223372036854775808.0) ? int64_t({}.f64) : LLONG_MIN;", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]), f(insn.operands[1]));
+         break;
+ 
+     case PPC_INST_FCTIWZ:
+         printSetFlushMode(false);
+-        println("\t{}.s64 = ({}.f64 > double(INT_MAX)) ? INT_MAX : simde_mm_cvttsd_si32(simde_mm_load_sd(&{}.f64));", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]));
++        // PPC saturates out-of-range values and converts NaN to the most negative value.
++        // Done explicitly since SIMDe's non-x86 fallback is off by one at the range limits.
++        println("\t{}.s64 = ({}.f64 >= 2147483648.0) ? INT_MAX : ({}.f64 > -2147483649.0) ? int32_t({}.f64) : INT_MIN;", f(insn.operands[0]), f(insn.operands[1]), f(insn.operands[1]), f(insn.operands[1]));
+         break;
+ 
+     case PPC_INST_FDIV:
+-- 
+2.54.0 (Apple Git-156)
+
